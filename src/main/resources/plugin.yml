@@ -1,5 +1,5 @@
-name: Prism
-main: me.botsko.prism.Prism
+name: MCMEPrism
+main: me.botsko.mcmeprism.MCMEPrism
 version: ${pom.version}-${env.BUILD_NUMBER}
 softdepend: [WorldEdit,HeroChat]
 author: viveleroi
