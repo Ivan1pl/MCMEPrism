@@ -56,7 +56,7 @@ public class ActionMessage {
     public String getRawMessage() {
         final StringBuilder msg = new StringBuilder();
         msg.append( ( a.getType().doesCreateBlock() || a.getType().getName().equals( "item-insert" ) || a.getType()
-                .getName().equals( "sign-change" ) ) ? "+" : "-" );
+                .getName().equals( "sign-change" ) || a.getType().getName().equals( "banner-change" ) ) ? "+" : "-" );
         msg.append( " #" + a.getId() );
         msg.append( " " + a.getPlayerName() );
         msg.append( " " + a.getType().getName() );
@@ -170,7 +170,7 @@ public class ActionMessage {
     protected String getPosNegPrefix() {
 
         if( a.getType().doesCreateBlock() || a.getType().getName().equals( "item-insert" )
-                || a.getType().getName().equals( "sign-change" ) ) {
+                || a.getType().getName().equals( "sign-change" ) || a.getType().getName().equals( "banner-change" ) ) {
             return ChatColor.GREEN + " + " + ChatColor.WHITE;
         } else {
             return ChatColor.RED + " - " + ChatColor.WHITE;

@@ -1,5 +1,6 @@
 package me.botsko.mcmeprism.actions;
 
+import java.util.ArrayList;
 import us.dhmc.mcmeelixr.TypeUtils;
 import me.botsko.mcmeprism.MCMEPrism;
 import me.botsko.mcmeprism.actionlibs.QueryParameters;
@@ -9,9 +10,11 @@ import me.botsko.mcmeprism.appliers.PrismProcessType;
 import me.botsko.mcmeprism.commandlibs.Flag;
 import me.botsko.mcmeprism.events.BlockStateChange;
 import me.botsko.mcmeprism.utils.BlockUtils;
+import org.bukkit.DyeColor;
 
 import org.bukkit.Material;
 import org.bukkit.SkullType;
+import org.bukkit.block.Banner;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -19,6 +22,8 @@ import org.bukkit.block.CommandBlock;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.Sign;
 import org.bukkit.block.Skull;
+import org.bukkit.block.banner.Pattern;
+import org.bukkit.block.banner.PatternType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -80,6 +85,19 @@ public class BlockAction extends GenericAction {
                 signActionData.lines = s.getLines();
                 actionData = signActionData;
             }
+            
+            // banners
+            else if( ( state.getTypeId() == 176 || state.getTypeId() == 177 ) ) {
+                final BannerActionData bannerActionData = new BannerActionData();
+                final Banner s = (Banner) state;
+                bannerActionData.lines = new String[1+s.numberOfPatterns()*2];//s.getLines();
+                bannerActionData.lines[0] = s.getBaseColor().toString();
+                for(int i=0; i<s.numberOfPatterns(); ++i) {
+                    bannerActionData.lines[1+2*i] = s.getPattern(i).getColor().toString();
+                    bannerActionData.lines[2+2*i] = s.getPattern(i).getPattern().toString();
+                }
+                actionData = bannerActionData;
+            }
 
             // command block
             else if( ( state.getTypeId() == 137 ) ) {
@@ -107,6 +125,8 @@ public class BlockAction extends GenericAction {
                 actionData = gson.fromJson( data, SpawnerActionData.class );
             } else if( block_id == 63 || block_id == 68 ) {
                 actionData = gson.fromJson( data, SignActionData.class );
+            } else if( block_id == 176 || block_id == 177 ) {
+                actionData = gson.fromJson( data, BannerActionData.class );
             } else if( block_id == 137 ) {
                 actionData = new BlockActionData();
             } else {
@@ -151,6 +171,11 @@ public class BlockAction extends GenericAction {
         name += materialAliases.getAlias( this.block_id, this.block_subid );
         if( actionData instanceof SignActionData ) {
             final SignActionData ad = (SignActionData) getActionData();
+            if( ad.lines != null && ad.lines.length > 0 ) {
+                name += " (" + TypeUtils.join( ad.lines, ", " ) + ")";
+            }
+        } else if( actionData instanceof BannerActionData ) {
+            final BannerActionData ad = (BannerActionData) getActionData();
             if( ad.lines != null && ad.lines.length > 0 ) {
                 name += " (" + TypeUtils.join( ad.lines, ", " ) + ")";
             }
@@ -231,6 +256,10 @@ public class BlockAction extends GenericAction {
      * 
      */
     public class SignActionData extends BlockActionData {
+        public String[] lines;
+    }
+    
+    public class BannerActionData extends BlockActionData {
         public String[] lines;
     }
 
@@ -430,6 +459,48 @@ public class BlockAction extends GenericAction {
                         }
                     }
                     sign.update();
+                }
+            }
+            
+            /**
+             * Banners
+             */
+            if( parameters.getProcessType().equals( PrismProcessType.ROLLBACK )
+                    && ( getBlockId() == 176 || getBlockId() == 177 ) && getActionData() instanceof BannerActionData ) {
+
+                final BannerActionData s = (BannerActionData) getActionData();
+
+                // Verify block is sign. Rarely, if the block somehow pops off
+                // or fails
+                // to set it causes ClassCastException:
+                // org.bukkit.craftbukkit.v1_4_R1.block.CraftBlockState
+                // cannot be cast to org.bukkit.block.Sign
+                // https://snowy-evening.com/botsko/prism/455/
+                if( block.getState() instanceof Banner ) {
+
+                    // Set sign data
+                    final Banner banner = (Banner) block.getState();
+                    int i = 0;
+                    if( s.lines != null && s.lines.length > 0 ) {
+                        ArrayList <Pattern> patterns = new ArrayList<Pattern>();
+                        DyeColor tmpcolor = DyeColor.BLACK;
+                        PatternType tmppattern;
+                        for ( final String line : s.lines ) {
+                            if(i == 0) {
+                                banner.setBaseColor(DyeColor.valueOf(line));
+                            }
+                            else if(i % 2 == 1) {
+                                tmpcolor = DyeColor.valueOf(line);
+                            }
+                            else {
+                                tmppattern = PatternType.valueOf(line);
+                                patterns.add(new Pattern(tmpcolor, tmppattern));
+                            }
+                            i++;
+                        }
+                        banner.setPatterns(patterns);
+                    }
+                    banner.update();
                 }
             }
 

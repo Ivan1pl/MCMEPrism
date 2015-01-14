@@ -6,6 +6,7 @@ import java.util.HashMap;
 import org.bukkit.plugin.Plugin;
 
 import me.botsko.mcmeprism.MCMEPrism;
+import me.botsko.mcmeprism.actions.BannerAction;
 import me.botsko.mcmeprism.actions.BlockAction;
 import me.botsko.mcmeprism.actions.BlockChangeAction;
 import me.botsko.mcmeprism.actions.BlockShiftAction;
@@ -113,6 +114,7 @@ public class HandlerRegistry<H> {
         registerHandler( PrismProcessAction.class );
         registerHandler( PrismRollbackAction.class );
         registerHandler( SignAction.class );
+        registerHandler( BannerAction.class );
         registerHandler( UseAction.class );
         registerHandler( VehicleAction.class );
 

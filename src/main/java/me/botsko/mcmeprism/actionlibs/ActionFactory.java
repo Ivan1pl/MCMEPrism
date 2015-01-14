@@ -1,6 +1,7 @@
 package me.botsko.mcmeprism.actionlibs;
 
 import java.util.Map;
+import me.botsko.mcmeprism.actions.BannerAction;
 
 import me.botsko.mcmeprism.actions.BlockAction;
 import me.botsko.mcmeprism.actions.BlockChangeAction;
@@ -263,6 +264,21 @@ public class ActionFactory {
      */
     public static Handler createSign(String action_type, Block block, String[] lines, String player) {
         final SignAction a = new SignAction();
+        a.setActionType( action_type );
+        a.setPlayerName( player );
+        a.setBlock( block, lines );
+        return a;
+    }
+    
+    /**
+     * BannerAction
+     * 
+     * @param action_type
+     * @param block
+     * @param player
+     */
+    public static Handler createBanner(String action_type, Block block, String[] lines, String player) {
+        final BannerAction a = new BannerAction();
         a.setActionType( action_type );
         a.setPlayerName( player );
         a.setBlock( block, lines );
